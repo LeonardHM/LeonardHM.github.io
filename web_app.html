@@ -1,202 +1,207 @@
-<html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- Conecta o webapp ao cliente do Telegram -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <title>Webapp para bot do Telegram</title>
-  </head>
-  <body>
-    <!-- Cria um elemento HTML para mostrar a foto do usuário -->
-    <div id="user-photo"></div>
-    <!-- Cria um elemento HTML para mostrar a lista de itens -->
-    <div id="items-container"></div>
-    <!-- Cria um elemento HTML para mostrar a tela de pagamento -->
-    <div id="payment-container"></div>
-    <!-- Cria um elemento script para o código JavaScript -->
-    <script>
-      // Cria uma lista de itens disponíveis
-      var items = [
-        { name: "ChatGPT", price: 10 },
-        { name: "Dalle", price: 20 },
-        { name: "TextGPT/AudioGPT", price: 30 },
-        { name: "Weather", price: 5 },
-      ];
+<html>
+<head>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
 
-      // Cria uma variável para armazenar os dados do usuário, do chat, do tema e do provider_token
-      var user_data, chat_data, theme_data, provider_token;
+    .container {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-around;
+      align-items: center;
+      height: 100vh;
+    }
 
-      // Cria uma variável para armazenar os dados da compra
-      var purchase_data = {
-        product: "",
-        quantity: 0,
-        price: 0,
-      };
+    .item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
 
-      // Cria uma função para mostrar a foto do usuário
-      function show_user_photo() {
-        // Obtém o elemento HTML onde a foto do usuário será mostrada
-        var user_photo = document.getElementById("user-photo");
-        // Limpa o conteúdo anterior
-        user_photo.innerHTML = "";
-        // Cria um elemento img para a foto do usuário
-        var img = document.createElement("img");
-        // Define o estilo do elemento img
-        img.style.width = "100px";
-        img.style.height = "100px";
-        img.style.borderRadius = "50%";
-        img.style.margin = "10px";
-        // Define o atributo src do elemento img com a url da foto do usuário
-        img.src = user_data.photo_user;
-        // Adiciona o elemento img ao elemento user_photo
-        user_photo.appendChild(img);
+    .icon {
+      font-size: 64px;
+    }
+
+    .title {
+      font-size: 24px;
+    }
+
+    .button {
+      width: 80px;
+      height: 40px;
+      border: none;
+      border-radius: 20px;
+      background-color: #0088cc;
+      color: white;
+      font-size: 16px;
+    }
+
+    .button-group {
+      display: flex;
+      flex-direction: row;
+    }
+
+    .counter {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 30px;
+      height: 30px;
+      border-radius: 15px;
+      background-color: #ff0000;
+      color: white;
+      font-size: 16px;
+      text-align: center;
+      line-height: 30px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="item" id="item1">
+      <div class="icon">🤖</div>
+      <div class="title">ChatGPT</div>
+      <div class="button-group">
+        <button class="button" id="add1">Add</button>
+        <button class="button" id="minus1" style="display:none;">-</button>
+        <button class="button" id="plus1" style="display:none;">+</button>
+        <div class="counter" id="count1" style="display:none;">0</div>
+      </div>
+    </div>
+    <div class="item" id="item2">
+      <div class="icon">🌄</div>
+      <div class="title">DALL-E</div>
+      <div class="button-group">
+        <button class="button" id="add2">Add</button>
+        <button class="button" id="minus2" style="display:none;">-</button>
+        <button class="button" id="plus2" style="display:none;">+</button>
+        <div class="counter" id="count2" style="display:none;">0</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+
+    // Initialize the Web App
+    window.Telegram.WebApp.init();
+
+    // Get the elements by id
+    var item1 = document.getElementById("item1");
+    var item2 = document.getElementById("item2");
+    var add1 = document.getElementById("add1");
+    var add2 = document.getElementById("add2");
+    var minus1 = document.getElementById("minus1");
+    var minus2 = document.getElementById("minus2");
+    var plus1 = document.getElementById("plus1");
+    var plus2 = document.getElementById("plus2");
+    var count1 = document.getElementById("count1");
+    var count2 = document.getElementById("count2");
+
+    // Define the prices and quantities of the items
+    var price1 = 10; // ChatGPT price in USD
+    var price2 = 20; // DALL-E price in USD
+    var quantity1 = 0; // ChatGPT quantity
+    var quantity2 = 0; // DALL-E quantity
+
+    // Define a function to update the UI based on the quantities
+    function updateUI() {
+      
+      // Show or hide the buttons and counters based on the quantities
+      if (quantity1 > 0) {
+        add1.style.display = "none";
+        minus1.style.display = "inline-block";
+        plus1.style.display = "inline-block";
+        count1.style.display = "inline-block";
+        count1.innerHTML = quantity1;
+      } else {
+        add1.style.display = "inline-block";
+        minus1.style.display = "none";
+        plus1.style.display = "none";
+        count1.style.display = "none";
       }
 
-      // Cria uma função para mostrar a lista de itens
-      function show_items() {
-        // Obtém o elemento HTML onde os itens serão mostrados
-        var items_container = document.getElementById("items-container");
-        // Limpa o conteúdo anterior
-        items_container.innerHTML = "";
-        // Cria um elemento HTML para cada item
-        for (var i = 0; i < items.length; i++) {
-          // Cria um elemento div para o item
-          var item_div = document.createElement("div");
-          // Define o estilo do elemento div
-          item_div.style.display = "flex";
-          item_div.style.alignItems = "center";
-          item_div.style.justifyContent = "space-between";
-          item_div.style.margin = "10px";
-          item_div.style.padding = "10px";
-          item_div.style.borderRadius = "10px";
-          item_div.style.backgroundColor = theme_data.secondary_bg_color;
-          // Cria um elemento span para o nome do item
-          var item_name = document.createElement("span");
-          // Define o estilo do elemento span
-          item_name.style.fontWeight = "bold";
-          item_name.style.fontSize = "18px";
-          // Define o conteúdo do elemento span
-          item_name.textContent = items[i].name;
-          // Cria um elemento span para o preço do item
-          var item_price = document.createElement("span");
-          // Define o estilo do elemento span
-          item_price.style.fontSize = "16px";
-          // Define o conteúdo do elemento span
-          item_price.textContent = items[i].price + " BRL";
-          // Cria um elemento button para selecionar o item
-          var item_button = document.createElement("button");
-          // Define o estilo do elemento button
-          item_button.style.width = "100px";
-          item_button.style.height = "40px";
-          item_button.style.borderRadius = "10px";
-          item_button.style.backgroundColor = theme_data.accent_color;
-          // Define o conteúdo do elemento button
-          item_button.textContent = "Selecionar";
-          // Define a função que será executada quando o botão for clicado
-          item_button.onclick = function () {
-            // Define os dados da compra com base no item selecionado
-            purchase_data.product = items[i].name;
-            purchase_data.quantity = 1;
-            purchase_data.price = items[i].price;
-            // Mostra a tela de pagamento
-            show_payment();
-          };
-          // Adiciona os elementos span e button ao elemento div
-          item_div.appendChild(item_name);
-          item_div.appendChild(item_price);
-          item_div.appendChild(item_button);
-          // Adiciona o elemento div ao elemento items_container
-          items_container.appendChild(item_div);
-        }
+      if (quantity2 > 0) {
+        add2.style.display = "none";
+        minus2.style.display = "inline-block";
+        plus2.style.display = "inline-block";
+        count2.style.display = "inline-block";
+        count2.innerHTML = quantity2;
+      } else {
+        add2.style.display = "inline-block";
+        minus2.style.display = "none";
+        plus2.style.display = "none";
+        count2.style.display = "none";
       }
 
-      // Cria uma função para mostrar a tela de pagamento
-      function show_payment() {
-        // Obtém o elemento HTML onde a tela de pagamento será mostrada
-        var payment_container = document.getElementById("payment-container");
-        // Limpa o conteúdo anterior
-        payment_container.innerHTML = "";
-        // Cria um elemento HTML para mostrar os detalhes da compra
-        var purchase_details = document.createElement("div");
-        // Define o estilo do elemento div
-        purchase_details.style.display = "flex";
-        purchase_details.style.flexDirection = "column";
-        purchase_details.style.alignItems = "center";
-        purchase_details.style.justifyContent = "center";
-        purchase_details.style.margin = "10px";
-        purchase_details.style.padding = "10px";
-        purchase_details.style.borderRadius = "10px";
-        purchase_details.style.backgroundColor = theme_data.secondary_bg_color;
-        // Cria um elemento span para mostrar o produto selecionado
-        var product_span = document.createElement("span");
-        // Define o estilo do elemento span
-        product_span.style.fontWeight = "bold";
-        product_span.style.fontSize = "18px";
-        // Define o conteúdo do elemento span
-        product_span.textContent =
-          "Produto: " + purchase_data.product + " x " + purchase_data.quantity;
-        // Cria um elemento span para mostrar o preço total da compra
-        var price_span = document.createElement("span");
-        // Define o estilo do elemento span
-        price_span.style.fontSize = "16px";
-        // Define o conteúdo do elemento span
-        price_span.textContent =
-          "Preço total: " + purchase_data.price * purchase_data.quantity + " BRL";
-        // Adiciona os elementos span ao elemento div
-        purchase_details.appendChild(product_span);
-        purchase_details.appendChild(price_span);
-        // Adiciona o elemento div ao elemento payment_container
-        payment_container.appendChild(purchase_details);
-        // Cria um elemento button para iniciar o pagamento
-        var payment_button = document.createElement("button");
-        // Define o estilo do elemento button
-        payment_button.style.width = "200px";
-        payment_button.style.height = "60px";
-        payment_button.style.borderRadius = "10px";
-        payment_button.style.backgroundColor = theme_data.accent_color;
-        // Define o conteúdo do elemento button
-        payment_button.textContent = "Pagar";
-        // Define a função que será executada quando o botão for clicado
-        payment_button.onclick = function () {
-          // Inicia o pagamento usando a API de pagamentos do Telegram
-          window.Telegram.WebApp.openInvoice({
-            title: purchase_data.product,
-            description: purchase_data.product + " x " + purchase_data.quantity,
-            payload: "productpayload",
-            provider_token: provider_token,
-            start_parameter: "start",
-            currency: "BRL",
-            prices: [
-              {
-                label: purchase_data.product,
-                amount: purchase_data.price * purchase_data.quantity * 100,
-              },
-            ],
-          });
-          // Envia os dados da compra para o bot usando o método sendData
-          window.Telegram.WebApp.sendData(JSON.stringify(purchase_data));
-        };
-        // Adiciona o elemento button ao elemento payment_container
-        payment_container.appendChild(payment_button);
+      // Calculate the total amount and the invoice payload
+      var total = quantity1 * price1 + quantity2 * price2;
+      var payload = JSON.stringify({
+        chatGPT: quantity1,
+        DALL-E: quantity2
+      });
+
+      // Show or hide the pay button based on the total amount
+      if (total > 0) {
+        window.Telegram.WebApp.showPayButton({
+          title: "Pay",
+          description: `You have selected ${quantity1} ChatGPT and ${quantity2} DALL-E`,
+          amount: total * 100, // amount in cents
+          currency: "USD",
+          payload: payload,
+          provider_token: "<your provider token>",
+          start_parameter: "<your start parameter>",
+          prices: [
+            {label: "ChatGPT", amount: quantity1 * price1 * 100},
+            {label: "DALL-E", amount: quantity2 * price2 * 100}
+          ]
+        });
+      } else {
+        window.Telegram.WebApp.hidePayButton();
       }
+    }
 
-      // Cria uma função para inicializar o webapp
-      function init_webapp() {
-        // Obtém os dados do usuário, do chat, do tema e do provider_token usando o método getWebAppData
-        user_data = window.Telegram.WebApp.getWebAppData().user;
-        chat_data = window.Telegram.WebApp.getWebAppData().chat;
-        theme_data = window.Telegram.WebApp.getWebAppData().theme;
-        provider_token = window.Telegram.WebApp.getWebAppData().provider_token;
+    // Define the event listeners for the buttons
+    add1.addEventListener("click", function() {
+      quantity1++;
+      updateUI();
+    });
+
+    add2.addEventListener("click", function() {
+      quantity2++;
+      updateUI();
+    });
+
+    minus1.addEventListener("click", function() {
+      if (quantity1 > 0) {
+        quantity1--;
+        updateUI();
       }
+    });
 
-      // Chama a função init_webapp quando a página for carregada
-      window.onload = init_webapp;
+    minus2.addEventListener("click", function() {
+      if (quantity2 > 0) {
+        quantity2--;
+        updateUI();
+      }
+    });
 
-      // Chama a função show_user_photo quando a página for carregada
-      window.onload = show_user_photo;
+    plus1.addEventListener("click", function() {
+      quantity1++;
+      updateUI();
+    });
 
-      // Chama a função show_items quando o botão principal for clicado
-      window.Telegram.WebApp.onMainButtonClick(show_items);
-    </script>
-  </body>
+    plus2.addEventListener("click", function() {
+      quantity2++;
+      updateUI();
+    });
+
+    // Update the UI initially
+    updateUI();
+
+  </script>
+</body>
 </html>
