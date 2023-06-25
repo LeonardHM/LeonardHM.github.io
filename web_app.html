@@ -1,184 +1,202 @@
-<html>
-<head>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Conecta o webapp ao cliente do Telegram -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <title>Webapp para bot do Telegram</title>
+  </head>
+  <body>
+    <!-- Cria um elemento HTML para mostrar a foto do usuário -->
+    <div id="user-photo"></div>
+    <!-- Cria um elemento HTML para mostrar a lista de itens -->
+    <div id="items-container"></div>
+    <!-- Cria um elemento HTML para mostrar a tela de pagamento -->
+    <div id="payment-container"></div>
+    <!-- Cria um elemento script para o código JavaScript -->
     <script>
-        // Função para atualizar a quantidade de um item
-        function updateQuantity(item, change) {
-            // Obter o elemento que mostra a quantidade atual
-            var quantityElement = document.getElementById(item + "-quantity");
-            // Obter o valor atual da quantidade
-            var quantity = parseInt(quantityElement.innerHTML);
-            // Verificar se a mudança é válida (não pode ser negativa)
-            if (quantity + change >= 0) {
-                // Atualizar a quantidade com a mudança
-                quantity = quantity + change;
-                // Atualizar o elemento com o novo valor
-                quantityElement.innerHTML = quantity;
-                // Atualizar o total do pedido
-                updateTotal();
-            }
-        }
+      // Cria uma lista de itens disponíveis
+      var items = [
+        { name: "ChatGPT", price: 10 },
+        { name: "Dalle", price: 20 },
+        { name: "TextGPT/AudioGPT", price: 30 },
+        { name: "Weather", price: 5 },
+      ];
 
-        // Função para atualizar o total do pedido
-        function updateTotal() {
-            // Obter os elementos que mostram as quantidades e os preços dos itens
-            var burgerQuantity = parseInt(document.getElementById("burger-quantity").innerHTML);
-            var burgerPrice = parseFloat(document.getElementById("burger-price").innerHTML);
-            var friesQuantity = parseInt(document.getElementById("fries-quantity").innerHTML);
-            var friesPrice = parseFloat(document.getElementById("fries-price").innerHTML);
-            var drinkQuantity = parseInt(document.getElementById("drink-quantity").innerHTML);
-            var drinkPrice = parseFloat(document.getElementById("drink-price").innerHTML);
-            // Calcular o total do pedido
-            var total = burgerQuantity * burgerPrice + friesQuantity * friesPrice + drinkQuantity * drinkPrice;
-            // Obter o elemento que mostra o total do pedido
-            var totalElement = document.getElementById("total");
-            // Atualizar o elemento com o novo valor
-            totalElement.innerHTML = total.toFixed(2);
-        }
+      // Cria uma variável para armazenar os dados do usuário, do chat, do tema e do provider_token
+      var user_data, chat_data, theme_data, provider_token;
 
-        // Função para enviar o pedido para a api de pagamentos do telegram
-        function sendOrder() {
-            // Obter os elementos que mostram as quantidades dos itens
-            var burgerQuantity = parseInt(document.getElementById("burger-quantity").innerHTML);
-            var friesQuantity = parseInt(document.getElementById("fries-quantity").innerHTML);
-            var drinkQuantity = parseInt(document.getElementById("drink-quantity").innerHTML);
-            // Obter o elemento que mostra o total do pedido
-            var total = parseFloat(document.getElementById("total").innerHTML);
-            // Verificar se o pedido não está vazio
-            if (total > 0) {
-                // Criar uma string com os dados do pedido
-                var orderData = "Pedido: ";
-                if (burgerQuantity > 0) {
-                    orderData += burgerQuantity + " x Burger ";
-                }
-                if (friesQuantity > 0) {
-                    orderData += friesQuantity + " x Fries ";
-                }
-                if (drinkQuantity > 0) {
-                    orderData += drinkQuantity + " x Drink ";
-                }
-                orderData += "Total: R$ " + total;
-                // Enviar os dados do pedido para a api de pagamentos do telegram usando o método switch_inline_query_chosen_chat
-                TelegramWebApp.switch_inline_query_chosen_chat(orderData);
-            } else {
-                // Mostrar uma mensagem de erro se o pedido estiver vazio
-                alert("Por favor, escolha pelo menos um item.");
-            }
+      // Cria uma variável para armazenar os dados da compra
+      var purchase_data = {
+        product: "",
+        quantity: 0,
+        price: 0,
+      };
+
+      // Cria uma função para mostrar a foto do usuário
+      function show_user_photo() {
+        // Obtém o elemento HTML onde a foto do usuário será mostrada
+        var user_photo = document.getElementById("user-photo");
+        // Limpa o conteúdo anterior
+        user_photo.innerHTML = "";
+        // Cria um elemento img para a foto do usuário
+        var img = document.createElement("img");
+        // Define o estilo do elemento img
+        img.style.width = "100px";
+        img.style.height = "100px";
+        img.style.borderRadius = "50%";
+        img.style.margin = "10px";
+        // Define o atributo src do elemento img com a url da foto do usuário
+        img.src = user_data.photo_user;
+        // Adiciona o elemento img ao elemento user_photo
+        user_photo.appendChild(img);
+      }
+
+      // Cria uma função para mostrar a lista de itens
+      function show_items() {
+        // Obtém o elemento HTML onde os itens serão mostrados
+        var items_container = document.getElementById("items-container");
+        // Limpa o conteúdo anterior
+        items_container.innerHTML = "";
+        // Cria um elemento HTML para cada item
+        for (var i = 0; i < items.length; i++) {
+          // Cria um elemento div para o item
+          var item_div = document.createElement("div");
+          // Define o estilo do elemento div
+          item_div.style.display = "flex";
+          item_div.style.alignItems = "center";
+          item_div.style.justifyContent = "space-between";
+          item_div.style.margin = "10px";
+          item_div.style.padding = "10px";
+          item_div.style.borderRadius = "10px";
+          item_div.style.backgroundColor = theme_data.secondary_bg_color;
+          // Cria um elemento span para o nome do item
+          var item_name = document.createElement("span");
+          // Define o estilo do elemento span
+          item_name.style.fontWeight = "bold";
+          item_name.style.fontSize = "18px";
+          // Define o conteúdo do elemento span
+          item_name.textContent = items[i].name;
+          // Cria um elemento span para o preço do item
+          var item_price = document.createElement("span");
+          // Define o estilo do elemento span
+          item_price.style.fontSize = "16px";
+          // Define o conteúdo do elemento span
+          item_price.textContent = items[i].price + " BRL";
+          // Cria um elemento button para selecionar o item
+          var item_button = document.createElement("button");
+          // Define o estilo do elemento button
+          item_button.style.width = "100px";
+          item_button.style.height = "40px";
+          item_button.style.borderRadius = "10px";
+          item_button.style.backgroundColor = theme_data.accent_color;
+          // Define o conteúdo do elemento button
+          item_button.textContent = "Selecionar";
+          // Define a função que será executada quando o botão for clicado
+          item_button.onclick = function () {
+            // Define os dados da compra com base no item selecionado
+            purchase_data.product = items[i].name;
+            purchase_data.quantity = 1;
+            purchase_data.price = items[i].price;
+            // Mostra a tela de pagamento
+            show_payment();
+          };
+          // Adiciona os elementos span e button ao elemento div
+          item_div.appendChild(item_name);
+          item_div.appendChild(item_price);
+          item_div.appendChild(item_button);
+          // Adiciona o elemento div ao elemento items_container
+          items_container.appendChild(item_div);
         }
+      }
+
+      // Cria uma função para mostrar a tela de pagamento
+      function show_payment() {
+        // Obtém o elemento HTML onde a tela de pagamento será mostrada
+        var payment_container = document.getElementById("payment-container");
+        // Limpa o conteúdo anterior
+        payment_container.innerHTML = "";
+        // Cria um elemento HTML para mostrar os detalhes da compra
+        var purchase_details = document.createElement("div");
+        // Define o estilo do elemento div
+        purchase_details.style.display = "flex";
+        purchase_details.style.flexDirection = "column";
+        purchase_details.style.alignItems = "center";
+        purchase_details.style.justifyContent = "center";
+        purchase_details.style.margin = "10px";
+        purchase_details.style.padding = "10px";
+        purchase_details.style.borderRadius = "10px";
+        purchase_details.style.backgroundColor = theme_data.secondary_bg_color;
+        // Cria um elemento span para mostrar o produto selecionado
+        var product_span = document.createElement("span");
+        // Define o estilo do elemento span
+        product_span.style.fontWeight = "bold";
+        product_span.style.fontSize = "18px";
+        // Define o conteúdo do elemento span
+        product_span.textContent =
+          "Produto: " + purchase_data.product + " x " + purchase_data.quantity;
+        // Cria um elemento span para mostrar o preço total da compra
+        var price_span = document.createElement("span");
+        // Define o estilo do elemento span
+        price_span.style.fontSize = "16px";
+        // Define o conteúdo do elemento span
+        price_span.textContent =
+          "Preço total: " + purchase_data.price * purchase_data.quantity + " BRL";
+        // Adiciona os elementos span ao elemento div
+        purchase_details.appendChild(product_span);
+        purchase_details.appendChild(price_span);
+        // Adiciona o elemento div ao elemento payment_container
+        payment_container.appendChild(purchase_details);
+        // Cria um elemento button para iniciar o pagamento
+        var payment_button = document.createElement("button");
+        // Define o estilo do elemento button
+        payment_button.style.width = "200px";
+        payment_button.style.height = "60px";
+        payment_button.style.borderRadius = "10px";
+        payment_button.style.backgroundColor = theme_data.accent_color;
+        // Define o conteúdo do elemento button
+        payment_button.textContent = "Pagar";
+        // Define a função que será executada quando o botão for clicado
+        payment_button.onclick = function () {
+          // Inicia o pagamento usando a API de pagamentos do Telegram
+          window.Telegram.WebApp.openInvoice({
+            title: purchase_data.product,
+            description: purchase_data.product + " x " + purchase_data.quantity,
+            payload: "productpayload",
+            provider_token: provider_token,
+            start_parameter: "start",
+            currency: "BRL",
+            prices: [
+              {
+                label: purchase_data.product,
+                amount: purchase_data.price * purchase_data.quantity * 100,
+              },
+            ],
+          });
+          // Envia os dados da compra para o bot usando o método sendData
+          window.Telegram.WebApp.sendData(JSON.stringify(purchase_data));
+        };
+        // Adiciona o elemento button ao elemento payment_container
+        payment_container.appendChild(payment_button);
+      }
+
+      // Cria uma função para inicializar o webapp
+      function init_webapp() {
+        // Obtém os dados do usuário, do chat, do tema e do provider_token usando o método getWebAppData
+        user_data = window.Telegram.WebApp.getWebAppData().user;
+        chat_data = window.Telegram.WebApp.getWebAppData().chat;
+        theme_data = window.Telegram.WebApp.getWebAppData().theme;
+        provider_token = window.Telegram.WebApp.getWebAppData().provider_token;
+      }
+
+      // Chama a função init_webapp quando a página for carregada
+      window.onload = init_webapp;
+
+      // Chama a função show_user_photo quando a página for carregada
+      window.onload = show_user_photo;
+
+      // Chama a função show_items quando o botão principal for clicado
+      window.Telegram.WebApp.onMainButtonClick(show_items);
     </script>
-</head>
-<body>
-    <h1>Bem-vindo ao Durger King!</h1>
-    <p>Escolha os itens que você deseja pedir:</p>
-    <table>
-        <tr>
-            <td>Burger</td>
-            <td>R$ <span id="burger-price">10.00</span></td>
-            <td><button onclick="updateQuantity('burger', -1)">-</button></td>
-            <td><span id="burger-quantity">0</span></td>
-            <td><button onclick="updateQuantity('burger', 1)">+</button></td>
-        </tr>
-        <tr>
-            <td>Fries</td>
-            <td>R$ <span id="fries-price">5.00</span></td>
-            <td><button onclick="updateQuantity('fries', -1)">-</button></td>
-            <td><span id="fries-quantity">0</span></td>
-            <td><button onclick="updateQuantity('fries', 1)">+</button></td>
-        </tr>
-        <tr>
-            <td>Drink</td>
-            <td>R$ <span id="drink-price">3.00</span></td>
-            <td><button onclick="updateQuantity('drink', -1)">-</button></td>
-            <td><span id="drink-quantity">0</span></td>
-            <td><button onclick="updateQuantity('drink', 1)">+</button></td>
-        </tr>
-    </table>
-    <p>Total do pedido: R$ <span id="total">0.00</span></p>
-    <p><button onclick="sendOrder()">Enviar pedido</button></p>
-</body>
-</html>
-
-
-
-<html>
-<head>
-    <script src="https://telegram.org/js/telegram-web-api.js"></script>
-</head>
-<body>
-    <h1>Webapp de exemplo</h1>
-    <div id="info"></div>
-    <div id="products"></div>
-    <script>
-        // Initialize the WebApp class
-        var webApp = new WebApp();
-
-        // Get the data passed by the inline button
-        var botToken = webApp.initData.data.bot_token;
-        var paymentToken = webApp.initData.data.payment_token;
-
-        // Get the user, chat and theme information
-        var user = webApp.user;
-        var chat = webApp.chat;
-        var themeParams = webApp.themeParams;
-
-        // Display the information in the page
-        var infoDiv = document.getElementById("info");
-        infoDiv.innerHTML = `
-            <p>User: ${user.first_name} ${user.last_name} (${user.id})</p>
-            <p>Chat: ${chat.title} (${chat.id})</p>
-            <p>Theme: ${themeParams.name}</p>
-        `;
-
-        // Create some products to sell
-        var products = [
-            {
-                name: "Camiseta",
-                price: 50,
-                description: "Uma camiseta branca com o logo do Telegram"
-            },
-            {
-                name: "Caneca",
-                price: 30,
-                description: "Uma caneca azul com o logo do Telegram"
-            },
-            {
-                name: "Adesivo",
-                price: 10,
-                description: "Um adesivo redondo com o logo do Telegram"
-            }
-        ];
-
-        // Display the products in the page
-        var productsDiv = document.getElementById("products");
-        products.forEach(function(product, index) {
-            var productDiv = document.createElement("div");
-            productDiv.innerHTML = `
-                <h2>${product.name}</h2>
-                <p>${product.description}</p>
-                <p>R$ ${product.price}</p>
-                <button id="buy${index}">Comprar</button>
-            `;
-            productsDiv.appendChild(productDiv);
-
-            // Add a click event listener to the buy button
-            var buyButton = document.getElementById("buy" + index);
-            buyButton.addEventListener("click", function() {
-                // Create an invoice object for the product
-                var invoice = {
-                    title: product.name,
-                    description: product.description,
-                    payload: "payload",
-                    provider_token: paymentToken,
-                    start_parameter: "start_parameter",
-                    currency: "BRL",
-                    prices: [
-                        { label: product.name, amount: product.price * 100 }
-                    ]
-                };
-
-                // Open the invoice in a modal window
-                webApp.openInvoice(invoice);
-            });
-        });
-    </script>
-</body>
+  </body>
 </html>
