@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Webapp de exemplo para bot</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .user-image {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      margin-top: 10px;
+    }
+
+    .items {
+      display: flex;
+      flex-direction: row;
+      margin-top: 20px;
+    }
+
+    .item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 10px;
+    }
+
+    .item-icon {
+      font-size: 48px;
+    }
+
+    .item-title {
+      font-size: 18px;
+    }
+
+    .item-button {
+      font-size: 16px;
+      padding: 5px 10px;
+      border-radius: 5px;
+      background-color: #eee;
+      cursor: pointer;
+    }
+
+    .item-counter {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+    }
+
+    .item-counter-icon {
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    .item-counter-number {
+      font-size: 18px;
+      margin: 0 5px;
+    }
+
+    .pay-button {
+      font-size: 20px;
+      padding: 10px 20px;
+      border-radius: 10px;
+      background-color: #eee;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    
+    /* Estilos baseados no colorScheme do usuário */
+    
+    body[data-color-scheme="day"] {
+        background-color:#fff; 
+        color:#000; 
+        --bg_color:#fff; 
+        --secondary_bg_color:#f0f0f0; 
+        --text_color:#000; 
+        --link_color:#007aff; 
+        --button_color:#007aff; 
+        --button_text_color:#fff; 
+        --button_disabled_color:#c7c7cd; 
+        --button_disabled_text_color:#fff; 
+        --header_color:#f7f7f8; 
+        --header_text_color:#000; 
+        --header_button_color:#007aff; 
+        --header_button_text_color:#fff; 
+        --header_button_disabled_color:#c7c7cd; 
+        --header_button_disabled_text_color:#fff; 
+        --separator_color:#c8c7cc
+     }
+     
+     body[data-color-scheme="night"] {
+         background-color:#000; 
+         color:#fff; 
+         --bg_color:#000; 
+         --secondary_bg_color:#1c1c1e; 
+         --text_color:#fff; 
+         --link_color:#0a84ff; 
+         --button_color:#0a84ff; 
+         --button_text_color:#fff; 
+         --button_disabled_color:#3a3a3c; 
+         --button_disabled_text_color:#636366; 
+         --header_color:#1c1c1e; 
+         --header_text_color:#fff; 
+         --header_button_color:#0a84ff; 
+         --header_button_text_color:#fff; 
+         --header_button_disabled_color:#3a3a3c; 
+         --header_button_disabled_text_color:#636366; 
+         --separator_color:#545458
+     }
+     
+     body[data-color-scheme="tinted"] {
+         background-color:hsl(210,100%,98%); color:hsl(210,13%,13%);--bg_color:hsl(210,100%,98%);--secondary_bg_color:hsl(210,100%,95%);--text_color:hsl(210,13%,13%);--link_color:hsl(210,100%,50%);--button_color:hsl(210,100%,50%);--button_text_color:hsl(210,100%,98%);--button_disabled_color:hsl(210,50%,80%);--button_disabled_text_color:hsl(210,100%,98%);--header_color:hsl(210,100%,95%);--header_text_color:hsl(210,13%,13%);--header_button_color:hsl(210,100%,50%);--header_button_text_color:hsl(210,100%,98%);--header_button_disabled_color:hsl(210,50%,80%);--header_button_disabled_text_color:hsl(210,100%,98%);--separator_color:hsl(210,50%,88%)
+     }
+     
+     body[data-color-scheme="arctic blue"] {
+         background-color:hsl(210,100%,99%); color:hsl(210,13%,13%);--bg_color:hsl(210,100%,99%);--secondary_bg_color:hsl(210,100%,97%);--text_color:hsl(210,13%,13%);--link_color:hsl(210,100%,50%);--button_color:hsl(210,100%,50%);--button_text_color:hsl(210,100%,99%);--button_disabled_color:hsl(210,50%,85%);--button_disabled_text_color:hsl(210,100%,99%);--header_color:hsl(210,100%,97%);--header_text_color:hsl(210,13%,13%);--header_button_color:hsl(210,100%,50%);--header_button_text_color:hsl(210,100%,99%);--header_button_disabled_color:hsl(210,50%,85%);--header_button_disabled_text_color:hsl(210,100%,99%);--separator_color:hsl(210,50%,93%)
+     }
+     
+     body[data-color-scheme="midnight blue"] {
+         background-color:#000; color:#fff; --bg_color:#000; --secondary_bg_color:#0a0a0a; --text_color:#fff; --link_color:#0a84ff; --button_color:#0a84ff; --button_text_color:#fff; --button_disabled_color:#3a3a3c; --button_disabled_text_color:#636366; --header_color:#0a0a0a; --header_text_color:#fff; --header_button_color:#0a84ff; --header_button_text_color:#fff; --header_button_disabled_color:#3a3a3c; --header_button_disabled_text_color:#636366; --separator_color:#545458
+     }
+     
+     body[data-color-scheme="day classic"] {
+         background-color:#f7f7f8; color:#000; --bg_color:#f7f7f8; --secondary_bg_color:#e5e5ea; --text_color:#000; --link_color:#007aff; --button_color:#007aff; --button_text_color:#fff; --button_disabled_color:#c7c7cd; --button_disabled_text_color:#fff; --header_color:#f7f7f8; --header_text_color:#000; --header_button_color:#007aff; --header_button_text_color:#fff; --header_button_disabled_color:#c7c7cd; --header_button_disabled_text_color:#fff; --separator_color:#c8c7cc
+     }
+     
+     body[data-color-scheme="night classic"] {
+         background-color:rgb(20,20,20); color:rgb(235,235,235); --bg_color:rgb(20,20,20); --secondary_bg_color:rgb(28,28,30); --text_color:rgb(235,235,235); --link_color:rgb(10,132,255); --button_color:rgb(10,132,255); --button_text_color:rgb(235,235,235); --button_disabled_color:rgb(58,58,60); --button_disabled_text_color:rgb(99,99,102); --header_color:rgb(28,28,30); --header_text_color:rgb(235,235,235); --header_button_color:rgb(10,132,255); --header_button_text_color:rgb(235,235,235); --header_button_disabled_color:rgb(58,58,60); --header_button_disabled_text_color:rgb(99,99,102); --separator_color:rgb(84,84,88)
+     }
+     
+     body[data-color-scheme="day accent"] {
+         background-color:hsl(210,100%,98%); color:hsl(210,13%,13%);--bg_color:hsl(210,100%,98%);--secondary_bg_color:hsl(210,100%,95%);--text_color:hsl(210,13%,13%);--link_color:hsl(210,100%,50%);--button_color:hsl(210,100%,50%);--button_text_color:hsl(210,100%,98%);--button_disabled_color:hsl(210,50%,80%);--button_disabled_text_color:hsl(210,100%,98%);--header_color:hsl(210,100%,95%);--header_text_color:hsl(210,13%,13%);--header_button_color:hsl(210,100%,50%);--header_button_text_color:hsl(210,100%,98%);--header_button_disabled_color:hsl(210,50%,80%);--header_button_disabled_text_color:hsl(210,100%,98%);--separator_color:hsl(210,50%,88%)
+     }
+     
+     body[data-color-scheme="night accent"] {
+         background-color:#000; color:#fff; --bg_color:#000; --secondary_bg_color:#0a0a0a; --text_color:#fff; --link_color:#0a84ff; --button_color:#0a84ff; --button_text_color:#fff; --button_disabled_color:#3a3a3c; --button_disabled_text_color:#636366; --header_color:#0a0a0a; --header_text_color:#fff; --header_button_color:#0a84ff; --header_button_text_color:#fff; --header_button_disabled_color:#3a3a3c; --header_button_disabled_text_color:rgb(99,99,102); --separator_color:rgb(84,84,88)
+     }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="user-image"></div>
+    <div class="items">
+      <div class="item" data-id="1">
+        <div class="item-icon">🤖</div>
+        <div class="item-title">ChatGPT</div>
+        <div class="item-button">ADD</div>
+        <div class="item-counter" hidden>
+          <div class="item-counter-icon">-</div>
+          <div class="item-counter-number">0</div>
+          <div class="item-counter-icon">+</div>
+        </div>
+      </div>
+      <div class="item" data-id="2">
+        <div class="item-icon">🌄</div>
+        <div class="item-title">DALL-E</div>
+        <div class="item-button">ADD</div>
+        <div class="item-counter" hidden>
+          <div class="item-counter-icon">-</div>
+          <div class="item-counter-number">0</div>
+          <div class="item-counter-icon">+</div>
+        </div>
+      </div>
+    </div>
+    <div class="pay-button" hidden>PAY</div>
+  </div>
+
+  <script>
+
+    // Inicializar o objeto WebApp
+    const webApp = new window.Telegram.WebApp();
+
+    // Obter os elementos do DOM
+    const userImage = document.querySelector(".user-image");
+    const items = document.querySelectorAll(".item");
+    const payButton = document.querySelector(".pay-button");
+
+    // Armazenar os dados dos itens
+    const itemsData = {
+      1: {
+        icon: "🤖",
+        title: "ChatGPT",
+        price: 10,
+        quantity: 0
+      },
+      2: {
+        icon: "🌄",
+        title: "DALL-E",
+        price: 20,
+        quantity: 0
+      }
+    };
+
+    // Atualizar o total de itens selecionados
+    function updateTotal() {
+      let total = 0;
+      for (let id in itemsData) {
+        total += itemsData[id].quantity;
+      }
+      if (total > 0) {
+        payButton.textContent = `PAY (${total})`;
+        payButton.hidden = false;
+      } else {
+        payButton.hidden = true;
+      }
+    }
+
+    // Atualizar a imagem do usuário
+    function updateUserImage(user) {
+      if (user.photo_url) {
+        userImage.src = user.photo_url;
+      } else {
+        userImage.textContent = "👤";
+      }
+    }
+
+    // Adicionar um evento de clique para cada item
+    for (let item of items) {
+      let id = item.dataset.id;
+      let button = item.querySelector(".item-button");
+      let counter = item.querySelector(".item-counter");
+      let minus = counter.querySelector(".item-counter-icon:first-child");
+      let number = counter.querySelector(".item-counter-number");
+      let plus = counter.querySelector(".item-counter-icon:last-child");
+
+      // Função para adicionar um item
+      function addItem() {
+        itemsData[id].quantity++;
+        number.textContent = itemsData[id].quantity;
+        button.hidden = true;
+        counter.hidden = false;
+        updateTotal();
+      }
+
+      // Função para remover um item
+      function removeItem() {
+        itemsData[id].quantity--;
+        number.textContent = itemsData[id].quantity;
+        if (itemsData[id].quantity === 0) {
+          button.hidden = false;
+          counter.hidden = true;
+        }
+        updateTotal();
+      }
+
+      // Adicionar eventos de clique para os botões e o contador
+      button.addEventListener("click", addItem);
+      minus.addEventListener("click", removeItem);
+      plus.addEventListener("click", addItem);
+    }
+
+    // Adicionar um evento de clique para o botão de pagamento
+    payButton.addEventListener("click", function() {
+      // Criar um objeto de fatura com os dados dos itens
+      let invoice = {
+        title: "Webapp de exemplo para bot",
+        description: "Compre produtos incríveis com o webapp do bot",
+        payload: "webapp-example",
+        provider_token: "YOUR_PROVIDER_TOKEN",
+        start_parameter: "webapp-example",
+        currency: "BRL",
+        prices: []
+      };
+      for (let id in itemsData) {
+        if (itemsData[id].quantity > 0) {
+          invoice.prices.push({
+            label: `${itemsData[id].icon} ${itemsData[id].title} x ${itemsData[id].quantity}`,
+            amount: itemsData[id].price * itemsData[id].quantity * 100
+          });
+        }
+      }
+
+      // Abrir a fatura usando a API do Telegram
+      webApp.openInvoice(invoice);
+    });
+
+    // Adicionar um evento para quando o webapp for inicializado
+    webApp.on("init", function(data) {
+      // Atualizar a imagem do usuário com os dados recebidos
+      updateUserImage(data.user);
+    });
+
+    // Adicionar um evento para quando o tema do usuário mudar
+    webApp.on("themeChange", function(theme) {
+      // Atualizar o atributo data-color-scheme do body com o novo tema
+      document.body.dataset.colorScheme = theme.name;
+    });
+
+    // Adicionar um evento para quando a fatura for fechada
+    webApp.on("invoiceClosed", function() {
+      // Mostrar um alerta para o usuário
+      webApp.showAlert("Obrigado pela compra!");
+    });
+  </script>
+</body>
+</html>
